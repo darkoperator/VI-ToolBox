@@ -550,7 +550,6 @@ function Get-VIMSessions
     Process
     {
         $SessionMgr = Get-View $DefaultViserver.ExtensionData.Client.ServiceContent.SessionManager
-        $AllSessions = @()
         
         Foreach ($session in $SessionMgr.SessionList) 
         {
@@ -569,13 +568,66 @@ function Get-VIMSessions
             $SessionProps.add("FullName", $session.FullName)
             $SessionProps.Add("Status",$SessionStatus)
             $SessionProps.add("Key",$session.key)
-            $SessionProps.Add("LoginTime", ($session.LoginTime).ToLocalTime())
-            $SessionProps.Add("LastActiveTime",($session.LastActiveTime).ToLocalTime())
+            $SessionProps.Add("LoginTime", $session.LoginTime)
+            $SessionProps.Add("LastActiveTime",$session.LastActiveTime)
 
             New-Object -TypeName PSObject -Property $SessionProps
         }
     }
     End
     {
+    }
+}
+
+<#
+.Synopsis
+   Disconnect a given session
+.DESCRIPTION
+   Disconnect a given session from a vCenter or ESX/ESXi hosts given the key for the session.
+.EXAMPLE
+   Terminate a sessions given its key.
+
+   PS C:\> Disconnect-VIMSession -Verbose -Key 883c4d07-33f6-eaef-021a-b417ec157888
+#>
+function Disconnect-VIMSession
+{
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param
+    (
+        # Session Key
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        $Key
+    )
+
+    Begin
+    {
+        # Make sure PowerCLI is installed and loaded
+        if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
+        {
+            Add-PsSnapin VMware.VimAutomation.Core
+        }
+        $Terminated = $false
+    }
+
+    Process
+    {
+        $SessionMgr = Get-View $DefaultViserver.ExtensionData.Client.ServiceContent.SessionManager
+        
+        Foreach ($session in $SessionMgr.SessionList) 
+        {
+            if ($session.key -eq $Key)
+            {
+                Write-Verbose "Terminating sessions $($session.key)"
+                $SessionMgr.TerminateSession($Session.Key)
+                $Terminated = $true
+            }
+        }
+    }
+    End
+    {
+        $Terminated
     }
 }
