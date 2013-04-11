@@ -20,8 +20,8 @@ function Get-VMMountedCDRom
     [OutputType([int])]
     Param
     (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
+        # Virtual Machine Object
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0,
                    ParameterSetName="VMOject")]
@@ -35,6 +35,11 @@ function Get-VMMountedCDRom
         if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
         {
             Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        if(!($VM))
+        {
+            $VM = Get-VM
         }
     }
     Process
@@ -67,8 +72,8 @@ function Get-VMConsoleConnectionCount
     [OutputType([int])]
     Param
     (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
+        # Virtual Machine Object
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0,
                    ParameterSetName="VMOject")]
@@ -82,6 +87,11 @@ function Get-VMConsoleConnectionCount
         if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
         {
             Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        if(!($VM))
+        {
+            $VM = Get-VM
         }
     }
     Process
@@ -99,13 +109,19 @@ function Get-VMConsoleConnectionCount
 
 <#
 .Synopsis
-   Short description
+   Check virtual Machine Tool status
 .DESCRIPTION
-   Long description
+   Ceck a given list of VMs or all VMs in a connected VMware Infrastucture for their tool status
 .EXAMPLE
-   Example of how to use this cmdlet
+   Get the tool status for all VMs 
+
+   PS C:\> Get-VMToolStatus
+
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+   Get tool status for a filtered list of VMs in the infrastructure.
+
+   PS C:\> get-vm ALB-* | Get-VMToolStatus
 #>
 function Get-VMToolStatus
 {
@@ -114,7 +130,7 @@ function Get-VMToolStatus
     Param
     (
         # Param1 help description
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0)]
         [VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl[]]
@@ -127,6 +143,11 @@ function Get-VMToolStatus
         if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
         {
             Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        if(!($VM))
+        {
+            $VM = Get-VM
         }
     }
     Process
@@ -318,7 +339,7 @@ function Search-VMOldSnapshots
     Param
     (
         # Single Virtual Machine Object or collection.
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0)]
         [VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl[]]
@@ -355,6 +376,11 @@ function Search-VMOldSnapshots
         if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
         {
             Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        if(!($VM))
+        {
+            $VM = Get-VM
         }
 
         switch ($PsCmdlet.ParameterSetName)
@@ -493,6 +519,61 @@ function Get-VMEvents
         
         $report
 
+    }
+    End
+    {
+    }
+}
+
+
+<#
+.Synopsis
+   List all current sessions.
+.DESCRIPTION
+   List all sessions on the current connected vCenter or ESX/ESXi server.
+.EXAMPLE
+   Get all current sessions.
+
+   PS C:\> Get-VIMSessions
+#>
+function Get-VIMSessions
+{
+    Begin
+    {
+        # Make sure PowerCLI is installed and loaded
+        if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
+        {
+            Add-PsSnapin VMware.VimAutomation.Core
+        }
+    }
+
+    Process
+    {
+        $SessionMgr = Get-View $DefaultViserver.ExtensionData.Client.ServiceContent.SessionManager
+        $AllSessions = @()
+        
+        Foreach ($session in $SessionMgr.SessionList) 
+        {
+            # Identify is the session is the current one
+            If ($session.Key -eq $SessionMgr.CurrentSession.Key) 
+            {
+            $SessionStatus = "Current Session"
+            } 
+            Else 
+            {
+            $SessionStatus = "Idle"
+            }
+        
+            $SessionProps = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
+            $SessionProps.Add("UserName", $session.username)
+            $SessionProps.add("FullName", $session.FullName)
+            $SessionProps.Add("Status",$SessionStatus)
+            $SessionProps.add("Key",$session.key)
+            $SessionProps.Add("LoginTime", ($session.LoginTime).ToLocalTime())
+            $SessionProps.Add("LastActiveTime",($session.LastActiveTime).ToLocalTime())
+
+            New-Object -TypeName PSObject -Property $SessionProps
+        }
     }
     End
     {
