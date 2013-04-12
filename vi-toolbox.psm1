@@ -479,9 +479,9 @@ function Get-VIUserEvents
                    ParameterSetName="Date")]
         [datetime]$Date,
 
-        # Type of events to filter for. Accpets Permission, Session, Console or Any
+        # Type of events to filter for. Accepts Permission, Session, Console or Any
         [ValidateSet("Permission", "Session", "Console", "Any")] 
-        $EventType
+        [string]$EventType
     )
 
     Begin
@@ -600,7 +600,7 @@ function Get-VMEvents
 
         # Specific types of event to filter on. Accepts Creation, Deletion, Console, PowerOn, PowerOff or Any
         [ValidateSet("Creation", "Deletion", "Console", "PowerOn", "PowerOff","Any")] 
-        $EventType
+        [string]$EventType
     )
 
     Begin
@@ -693,11 +693,11 @@ function Get-VIMSessions
             # Identify is the session is the current one
             If ($session.Key -eq $SessionMgr.CurrentSession.Key) 
             {
-            $SessionStatus = "Current Session"
+                $SessionStatus = "Current Session"
             } 
             Else 
             {
-            $SessionStatus = "Idle"
+                $SessionStatus = "Idle"
             }
         
             $SessionProps = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
