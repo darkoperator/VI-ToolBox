@@ -131,7 +131,7 @@ function Get-VMToolStatus
     [OutputType([int])]
     Param
     (
-        # Param1 help description
+        # Virtual Machine Object
         [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0)]
@@ -352,24 +352,28 @@ function Search-VMOldSnapshots
         [VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl[]]
         $VM,
 
+        # Number of days back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Days")]
         [int]$Days,
 
+        # Number of hours back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Hours")]
         [int]$Hours,
 
+        # Number of months back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Months")]
         [int]$Months,
 
+        # Specific date to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
@@ -447,30 +451,35 @@ function Get-VIUserEvents
         [string[]]
         $UserName,
 
+        # Number of days back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Days")]
         [int]$Days,
 
+        # Number of hours back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Hours")]
         [int]$Hours,
 
+        # Number of Months back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Months")]
         [int]$Months,
 
+        # Specific date to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Date")]
         [datetime]$Date,
 
+        # Type of events to filter for. Accpets Permission, Session, Console or Any
         [ValidateSet("Permission", "Session", "Console", "Any")] 
         $EventType
     )
@@ -561,30 +570,35 @@ function Get-VMEvents
         [string]
         $VMName,
 
+        # Number of days back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Days")]
         [int]$Days,
 
+        # Number of hours back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Hours")]
         [int]$Hours,
 
+        # Number of months back to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Months")]
         [int]$Months,
 
+        # Specific to start filtering on.
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$false,
                    Position=1,
                    ParameterSetName="Date")]
         [datetime]$Date,
 
+        # Specific types of event to filter on. Accepts Creation, Deletion, Console, PowerOn, PowerOff or Any
         [ValidateSet("Creation", "Deletion", "Console", "PowerOn", "PowerOff","Any")] 
         $EventType
     )
