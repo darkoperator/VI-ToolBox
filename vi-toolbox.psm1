@@ -464,7 +464,7 @@ function Get-VMEvents
                    ParameterSetName="Date")]
         [datetime]$Date,
 
-        [ValidateSet("Creation","Deletion","Console","Any")] 
+        [ValidateSet("Creation", "Deletion", "Console", "PowerOn", "PowerOff", "Session","Any")] 
         $EventType
     )
 
@@ -486,8 +486,11 @@ function Get-VMEvents
 
         switch ($EventType)
         {
+            "PowerOn"  {$Types = "VmPoweredOnEvent"}
+            "PowerOff" {$Types = "VmPoweredOffEvent, VmResettingEvent","VmStoppingEvent"}
             "Console"  {$Types = "VmConnectedEvent", "VmAcquiredTicketEvent"}
-            "Deletion"   {$Types = "VMRemovedEvent"}
+            "Session"  {$Types = "UserLoginSessionEvent", "UserLogOffSessionEvent"}
+            "Deletion" {$Types = "VmRemovedEvent"}
             "Creation" {$Types = "VmCreatedEvent","VmDeployedEvent","VmClonedEvent","VmDiscoveredEvent","VmRegisteredEvent"}
         }
 
