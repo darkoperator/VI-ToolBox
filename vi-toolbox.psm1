@@ -411,6 +411,118 @@ function Search-VMOldSnapshots
     }
 }
 
+<#
+.Synopsis
+   Retrives specific user type events from a vCenter server
+.DESCRIPTION
+   Retrives events for user login and permission manipulation from a vCenter server
+.EXAMPLE
+   Find all loging events for vmwadmin user in the last 6 hours.
+
+   Get-VIUserEvents -UserName "ACMELABS\vmadmin" -EventType Session -Hours 6
+
+.EXAMPLE
+   Find all permission manipulation events in the last month.
+
+   Get-VIUserEvents -Months 1 -EventType Permission
+#>
+function Get-VIUserEvents
+{ 
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Single Virtual Machine Object or collection.
+        [Parameter(Mandatory=$false,
+                   ValueFromPipeline=$true,
+                   Position=0)]
+        [string[]]
+        $UserName,
+
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$false,
+                   Position=1,
+                   ParameterSetName="Days")]
+        [int]$Days,
+
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$false,
+                   Position=1,
+                   ParameterSetName="Hours")]
+        [int]$Hours,
+
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$false,
+                   Position=1,
+                   ParameterSetName="Months")]
+        [int]$Months,
+
+        [Parameter(Mandatory=$true,
+                   ValueFromPipeline=$false,
+                   Position=1,
+                   ParameterSetName="Date")]
+        [datetime]$Date,
+
+        [ValidateSet("Permission", "Session", "Console", "Any")] 
+        $EventType
+    )
+
+    Begin
+    {
+        # Make sure PowerCLI is installed and loaded
+        if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
+        {
+            Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        switch ($PsCmdlet.ParameterSetName)
+        {
+            "Hours"  {$startdate = (Get-Date).AddHours(-$Hours)}
+            "Days"   {$startdate = (Get-Date).AddDays(-$Days)}
+            "Months" {$startdate = (Get-Date).AddMonths(-$Months)}
+            "Date"   {$startdate = $Date}
+        }
+
+        switch ($EventType)
+        {
+            
+            "Session"    {$Types = "UserLoginSessionEvent", "UserLogOffSessionEvent"}
+            "Permission" {$Types = "PermissionEvent", "PermissionAddedEvent","PermissionRemovedEvent", "PermissionUpdatedEvent"}
+            "Console"    {$Types = "VmConnectedEvent", "VmAcquiredTicketEvent"}
+        }
+
+        $eventnumber = 1000
+    }
+    Process
+    {
+        $report = @()
+        $ServiceInstance = get-view ServiceInstance
+        $EventManager = Get-View eventManager
+        $EventFilterSpec = New-Object VMware.Vim.EventFilterSpec
+        $EventFilterSpec.time = New-Object VMware.Vim.EventFilterSpecByTime
+        $EventFilterSpec.time.beginTime = $startdate
+        $EventFilterSpec.time.endtime = (Get-Date)
+        $EventFilterSpec.Type = $Types
+        if ($UserName)
+        {
+            $EventFilterSpec.UserName = New-Object VMware.Vim.EventFilterSpecByUsername
+            $EventFilterSpec.UserName.UserList = $UserName
+        }
+        $ecollectionImpl = Get-View ($EventManager.CreateCollectorForEvents($EventFilterSpec))
+        $ecollection = $ecollectionImpl.ReadNextEvents($eventnumber) 
+        
+	        foreach($event in $ecollection)
+            {
+                $report += $event
+            }
+        
+        $report
+
+    }
+    End
+    {
+    }
+}
 
 <#
 .Synopsis
@@ -464,7 +576,7 @@ function Get-VMEvents
                    ParameterSetName="Date")]
         [datetime]$Date,
 
-        [ValidateSet("Creation", "Deletion", "Console", "PowerOn", "PowerOff", "Session","Any")] 
+        [ValidateSet("Creation", "Deletion", "Console", "PowerOn", "PowerOff","Any")] 
         $EventType
     )
 
@@ -489,7 +601,6 @@ function Get-VMEvents
             "PowerOn"  {$Types = "VmPoweredOnEvent"}
             "PowerOff" {$Types = "VmPoweredOffEvent, VmResettingEvent","VmStoppingEvent"}
             "Console"  {$Types = "VmConnectedEvent", "VmAcquiredTicketEvent"}
-            "Session"  {$Types = "UserLoginSessionEvent", "UserLogOffSessionEvent"}
             "Deletion" {$Types = "VmRemovedEvent"}
             "Creation" {$Types = "VmCreatedEvent","VmDeployedEvent","VmClonedEvent","VmDiscoveredEvent","VmRegisteredEvent"}
         }
