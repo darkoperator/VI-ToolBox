@@ -1,4 +1,6 @@
-﻿<#
+﻿Add-PSSnapin -Name vmware.vimautomation.core
+
+<#
 .Synopsis
    Identify Virtual Machines with Mounted CDRoms
 .DESCRIPTION
@@ -188,7 +190,7 @@ function Search-VMMacAddress
     Param
     (
         # Single Virtual Machine Object or collection.
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    ValueFromPipeline=$true,
                    Position=0)]
         [VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl[]]
@@ -208,6 +210,11 @@ function Search-VMMacAddress
         if ( (Get-PSSnapin -Name VMware.VimAutomation.Core -ErrorAction SilentlyContinue) -eq $null )
         {
             Add-PsSnapin VMware.VimAutomation.Core
+        }
+
+        if(!($VM))
+        {
+            $VM = Get-VM
         }
     }
     Process
