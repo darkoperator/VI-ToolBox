@@ -411,6 +411,7 @@ function Search-VMOldSnapshots
     }
 }
 
+
 <#
 .Synopsis
    Retrives specific user type events from a vCenter server
@@ -523,6 +524,7 @@ function Get-VIUserEvents
     {
     }
 }
+
 
 <#
 .Synopsis
@@ -692,6 +694,7 @@ function Get-VIMSessions
     {
     }
 }
+
 
 <#
 .Synopsis
